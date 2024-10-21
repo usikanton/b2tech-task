@@ -1,0 +1,68 @@
+plugins {
+    id 'java'
+    id 'io.qameta.allure' version '2.12.0'
+}
+
+group = 'org.example'
+version = '1.0-SNAPSHOT'
+description = 'b2tech-task'
+sourceCompatibility = '17'
+targetCompatibility = '17'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+def allureVersion = "2.24.0"
+def aspectJVersion = "1.9.22.1"
+def restAssuredVersion = "5.4.0"
+def lombokVersion = "1.18.34"
+
+dependencies {
+    implementation("org.testng:testng:7.5.1")
+    implementation 'com.codeborne:selenide:7.5.0'
+    implementation 'com.google.inject:guice:7.0.0'
+    implementation 'com.github.javafaker:javafaker:1.0.2'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.0'
+    implementation("io.rest-assured:rest-assured:$restAssuredVersion")
+    testImplementation platform("io.qameta.allure:allure-bom:$allureVersion")
+    implementation("io.qameta.allure:allure-rest-assured:$allureVersion")
+    implementation 'io.qameta.allure:allure-testng:2.13.9'
+    implementation 'org.assertj:assertj-core:3.26.3'
+    implementation("org.aspectj:aspectjweaver:$aspectJVersion")
+    implementation("org.projectlombok:lombok:$lombokVersion")
+    annotationProcessor("org.projectlombok:lombok:$lombokVersion")
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+configurations {
+    testCompile
+}
+
+tasks.named('test') {
+    useTestNG()
+    systemProperty 'listener', 'utils.TestListener'
+    maxParallelForks = 10
+    ignoreFailures = true
+    jvmArgs = ['-javaagent:' + configurations.runtimeClasspath.files.find { it.name.contains('aspectjweaver') }]
+}
+
+allure {
+    version.set("2.29.0")
+    adapter {
+        autoconfigure.set(true)
+        autoconfigureListeners.set(true)
+        aspectjWeaver.set(true)
+        frameworks {
+            testng {
+                adapterVersion.set("...")
+                enabled.set(true)
+                autoconfigureListeners.set(true)
+            }
+        }
+    }
+}
